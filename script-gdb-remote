@@ -1,0 +1,24 @@
+set logging file gdb.txt
+set logging on
+
+# allow background execution
+set target-async on
+
+# pagination needs to be off for the following setting
+set pagination off
+
+# allow some threads to run while others are stopped
+set non-stop on
+
+# se executa din folderul in care se afla git-urile
+set sysroot p5_smart_shine/target/brs2s/rootfs.unstripped/
+
+set solib-absolute-prefix p5_smart_shine/target/brs2s/rootfs.unstripped/
+
+set solib-search-path p5_smart_shine/target/brs2s/rootfs.unstripped/:/media/SSD/tools/gcc-linaro-6.4.1-2017.08-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/lib:/media/SSD/tools/gcc-linaro-6.4.1-2017.08-x86_64_arm-linux-gnueabihf/libc/usr/lib
+
+
+define brs_switchdrv
+file p5_smart_shine/target/am335_l/avenger/ipl/switchdrvr
+target remote 192.168.2.100:333
+

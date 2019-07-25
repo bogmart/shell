@@ -1,0 +1,2 @@
+set sysroot target/brs2s/rootfs.unstripped
+

@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# uvgrep (UniVersal Grep), version 1.0.1 (2016/07/08)
+# (c) Hans-Georg Esser, EasyLinux, hgesser@easylinux.de
+# uvgrep: grep txt, PDF and LibreOffice files
+# Licensed under the GPL, version 3 (see LICENSE)
+
+MSG_NOTFOUND="$0: %s: Datei nicht gefunden\n"
+MSG_BADFILETYPE="$0: %s: Kann keine Dateien mit Endung '.%s' verarbeiten\n"
+MSG_BADOPTION="$0: Ungueltige Option '%s'\n"
+
+unset OPT_IGNORE
+unset OPT_NUMBER
+OPTERR=0
+IFS=""
+OPTIONS=""
+ODTOPTIONS=""
+XMLLINT_INDENT=""
+while getopts ":in" option; do
+  case $option in
+    "?")
+      printf "$MSG_BADOPTION" "-$OPTARG"
+      exit 1;;
+    "i")
+      OPTIONS+=i
+      ODTOPTIONS+=i
+      OPT_IGNORE=1;;
+    "n")
+      OPTIONS+=n
+      OPT_NUMBER=1;;
+  esac
+done
+if [ "$OPTIONS" != "" ]; then OPTIONS="-$OPTIONS"; fi
+if [ "$ODTOPTIONS" != "" ]; then ODTOPTIONS="-$ODTOPTIONS"; fi
+shift $((OPTIND-1))
+
+PATTERN=$1
+shift
+
+for file in $@; do
+  if [ ! -f "$file" ]; then
+    printf "$MSG_NOTFOUND" "$file" >&2
+    continue
+  fi
+  
+  ext="${file##*.}"
+  filetype=$(echo $ext | tr 'A-Z' 'a-z')
+  case $filetype in
+    txt | sh | conf | pl | py)
+      grep -H --color $OPTIONS $PATTERN "$file" ;;
+      
+    pdf)
+      pdfgrep -H $OPTIONS $PATTERN "$file" ;;
+      
+    odt | ods | odp)
+      unzip -caq "$file" content.xml | xmllint --format - | sed -e 's/ *//' \
+        | grep $ODTOPTIONS -H --color=always $PATTERN | sed -e "s|^(standard input)|$file|" ;;
+
+    docx | docm)
+      unzip -caq "$file" word/document.xml | xmllint --format - | sed -e 's/ *//' \
+        | grep $ODTOPTIONS -H --color=always $PATTERN | sed -e "s|^(standard input)|$file|" ;;
+
+    xlsx)
+      dir=$(tempfile -p uvgrep-); rm $dir; mkdir $dir
+      unzip -ajq -d $dir "$file" xl/worksheets/sheet*.xml xl/sharedStrings.xml
+      pushd $dir > /dev/null
+      for subfile in *.xml; do
+        xmllint --recover --format "$subfile" | sed -e 's/ *//' \
+        | grep $ODTOPTIONS -H --color=always $PATTERN | sed -e "s|^(standard input)|$file[/$subfile]|"
+      done
+      popd > /dev/null
+      rm -rf $dir ;;
+
+    pptx)
+      dir=$(tempfile -p uvgrep-); rm $dir; mkdir $dir
+      unzip -ajq -d $dir "$file" ppt/slides/slide*.xml
+      pushd $dir > /dev/null
+      for subfile in *.xml; do
+        xmllint --recover --format "$subfile" | sed -e 's/ *//' \
+        | grep $ODTOPTIONS -H --color=always $PATTERN | sed -e "s|^(standard input)|$file[/$subfile]|"
+      done
+      popd > /dev/null
+      rm -rf $dir ;;
+
+    *)
+      printf "$MSG_BADFILETYPE" "$file" "$filetype" >&2 ;;
+  esac
+done
