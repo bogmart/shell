@@ -32,22 +32,21 @@ optionsUnknown=
 log_output_dir=/home/versiuni/bogmart_builds/build_logs
 log_output_latest=${log_output_dir}/build_latest.txt
 
-filterInclude=".*error:.*"
-filterInclude="${filterInclude}|.*ERROR: .*"
-filterInclude="${filterInclude}|.*make.*Error.*"
-filterInclude="${filterInclude}|.*undefined reference to.*"
-filterInclude="${filterInclude}|.*unknown type:.*"
-filterInclude="${filterInclude}|.*RuntimeException.*"
-filterInclude="${filterInclude}|.*Caused by:.*"
-filterInclude="${filterInclude}|.*MIBLoader.*"
-filterInclude="${filterInclude}|.*MibDefGenerator.*"
-filterInclude="${filterInclude}|.*syntax error.*"
-#filterInclude="${filterInclude}|.*last token read.*"
-filterInclude="${filterInclude}|.*multiple definition of.*"
-filterInclude="${filterInclude}|.*first defined here.*"
-filterInclude="${filterInclude}|.*First name: .*"
-
-
+filterInclude=/tmp/makeR_filterInclude.txt
+echo ".*error:.* "                    > ${filterInclude}
+echo ".*ERROR: .* "                   >> ${filterInclude}
+echo ".*make.*Error.* "               >> ${filterInclude}
+echo ".*undefined reference to.* "    >> ${filterInclude}
+echo ".*unknown type:.* "             >> ${filterInclude}
+echo ".*RuntimeException.* "          >> ${filterInclude}
+echo ".*Caused by:.* "                >> ${filterInclude}
+echo ".*MIBLoader.* "                 >> ${filterInclude}
+echo ".*MibDefGenerator.* "           >> ${filterInclude}
+echo ".*syntax error.* "              >> ${filterInclude}
+echo ".*multiple definition of.* "    >> ${filterInclude}
+echo ".*first defined here.* "        >> ${filterInclude}
+echo ".*First name: .* "              >> ${filterInclude}
+#echo ".*last token read.* "           >> ${filterInclude}
 
 filterExclude="(ignored)"
 
@@ -137,8 +136,7 @@ if [ "${PIPESTATUS[0]}" -ne "0" ]
 then
    echo ""
    echo ${log_output_latest}
-   less ${output_file} | grep --color=always -E "${filterInclude}" | grep -v "${filterExclude}"
-   #less -X --pattern="${filterInclude}" ${output_file}
+   time cat ${output_file} | parallel --pipe grep --color=always -f ${filterInclude} | grep -v "${filterExclude}"
 fi
 
 
