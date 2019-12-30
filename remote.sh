@@ -1,13 +1,11 @@
 #/bin/bash
 
-logPath=/home/console_logs
+logPath=/media/data/logs/console_logs
 logFile="$1_$(date +"%Y-%m-%d_%H-%M").txt"
 
-set-title() {
-  ORIG=$PS1
-  TITLE="\e]2;$@\a"
-  PS1=${ORIG}${TITLE}
-}
+
+set-title() { printf "\033]0;$*\007"; }
+
 
 mkdir -p ${logPath}
 

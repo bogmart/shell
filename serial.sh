@@ -4,7 +4,7 @@
 #  ~/.minirc.dfl
 #       pu statusline       disabled
 
-logPath=/home/console_logs
+logPath=/media/data/logs/console_logs
 logFile="$1_$(date +"%Y-%m-%d_%H-%M").txt"
 
 mkdir -p ${logPath}
@@ -17,11 +17,9 @@ case "$1" in
     #ttyDevice=/dev/serial/by-id/usb-Hirschmann_Automation+Control_BRS50-00122Q2Q-STCZ99HHSES_942170999000201851-if02
   ;;
 
-  dragon)
+  rsp|rsps|rspl|rspe)
     baudRate=9600
-    #ttyDevice=/dev/ttyUSB0
-    #ttyDevice=/dev/ttyUSB1
-    ttyDevice=/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_D-if00-port0
+    ttyDevice=/dev/ttyS3
   ;;
 
   ees|msp|os|grs)
@@ -29,9 +27,11 @@ case "$1" in
     ttyDevice=/dev/ttyS1
   ;;
 
-  rsp|rsps|rspl|rspe)
+  usb|dragon)
     baudRate=9600
-    ttyDevice=/dev/ttyS2
+    #ttyDevice=/dev/ttyUSB0
+    #ttyDevice=/dev/ttyUSB1
+    ttyDevice=/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_D-if00-port0
   ;;
 
   *)
