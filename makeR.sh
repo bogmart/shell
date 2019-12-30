@@ -28,25 +28,27 @@ logConsole=2
 versionName=B.Mar
 optionsUnknown=
 
-#log_output_dir=/media/tmpfs/build_logs
-log_output_dir=/home/versiuni/bogmart_builds/build_logs
+log_output_dir=/media/data/versiuni/bogmart_builds/build_logs
 log_output_latest=${log_output_dir}/build_latest.txt
 
 filterInclude=/tmp/makeR_filterInclude.txt
-echo ".*error:.* "                    > ${filterInclude}
-echo ".*ERROR: .* "                   >> ${filterInclude}
-echo ".*make.*Error.* "               >> ${filterInclude}
-echo ".*undefined reference to.* "    >> ${filterInclude}
-echo ".*unknown type:.* "             >> ${filterInclude}
-echo ".*RuntimeException.* "          >> ${filterInclude}
-echo ".*Caused by:.* "                >> ${filterInclude}
-echo ".*MIBLoader.* "                 >> ${filterInclude}
-echo ".*MibDefGenerator.* "           >> ${filterInclude}
-echo ".*syntax error.* "              >> ${filterInclude}
-echo ".*multiple definition of.* "    >> ${filterInclude}
-echo ".*first defined here.* "        >> ${filterInclude}
-echo ".*First name: .* "              >> ${filterInclude}
-#echo ".*last token read.* "           >> ${filterInclude}
+echo ".*error:.*"                    > ${filterInclude}
+echo ".*ERROR: .*"                   >> ${filterInclude}
+echo ".*make.*Error.*"               >> ${filterInclude}
+echo ".*undefined reference to.*"    >> ${filterInclude}
+echo ".*unknown type:.*"             >> ${filterInclude}
+echo ".*RuntimeException.*"          >> ${filterInclude}
+echo ".*Caused by:.*"                >> ${filterInclude}
+echo ".*MIBLoader.*"                 >> ${filterInclude}
+echo ".*MibDefGenerator.*"           >> ${filterInclude}
+echo ".*syntax error.*"              >> ${filterInclude}
+echo ".*multiple definition of.*"    >> ${filterInclude}
+echo ".*first defined here.*"        >> ${filterInclude}
+echo ".*First name: .*"              >> ${filterInclude}
+echo ".*No rule to make target.*"    >> ${filterInclude}
+#shell
+echo ".*not found.*"                 >> ${filterInclude}
+#echo ".*last token read.*"           >> ${filterInclude}
 
 filterExclude="(ignored)"
 
@@ -136,7 +138,7 @@ if [ "${PIPESTATUS[0]}" -ne "0" ]
 then
    echo ""
    echo ${log_output_latest}
-   time cat ${output_file} | parallel --pipe grep --color=always -f ${filterInclude} | grep -v "${filterExclude}"
+   cat ${output_file} | parallel -j ${speed} --k --round --pipe  grep --color=always -f "${filterInclude}" | grep -v "${filterExclude}"
 fi
 
 
