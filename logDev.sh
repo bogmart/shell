@@ -18,11 +18,12 @@ then
  hac_ip=$1
 fi
 
-hac_type=`snmpget  -v 2c -c private ${hac_ip} hm2DevMgmtProductDescr.0 | grep -oh  "STRING: [a-zA-Z0-9]*" | sed 's/STRING: //'`
+#get the device type/family: MSP30 / BRS50
+hac_type=`snmpget -v 3 -l authPriv -u admin -a MD5 -A privateprivate -x DES -X privateprivate ${hac_ip} hm2DevMgmtProductDescr.0 | grep -oh  "STRING: [a-zA-Z0-9]*" | sed 's/STRING: //'`
 
 tmpFile=temp_${hac_ip}.html
 outFile=develLog_${hac_type}_${hac_ip}-$(date +"%Y.%m.%d-%H.%M.%S").html
-outDir=~/Documents/dev_logs
+outDir=/media/data/logs/dev_logs
 
 
 #base64auth=`echo ${user}:${pass} | base64`
@@ -31,10 +32,10 @@ outDir=~/Documents/dev_logs
 
 wget  --http-user=${user} --http-password=${pass}  http://${hac_ip}/download.html?filetype=supportinfo -O ${outDir}/${tmpFile} 
 
-# check if file exist and it is or empty
+# check if file exist and it is not empty
 if [[ -f ${outDir}/${tmpFile} && -s ${outDir}/${tmpFile} ]]
 then
-    echo "$_file has some data."
+    #echo "${tmpFile} has some data."
     unscramble ${outDir}/${tmpFile}  ${outDir}/${outFile}
 
     rm ${outDir}/${tmpFile}
