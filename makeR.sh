@@ -133,12 +133,16 @@ echo -e make TARGET=${hw} ${target} DEBUG=${debug} LOG_CONSOLE=${logConsole} SPE
 (eval ${timeStats} nice  make TARGET=${hw} ${target} DEBUG=${debug} LOG_CONSOLE=${logConsole} SPEED=${speed} VERSION=${versionName} \
                WEB_BUILD=${webBuild} ${optionsUnknown} 2>&1) 2>&1 | tee -a ${output_file}
 
+makeExitCode=${PIPESTATUS[0]}
 
-if [ "${PIPESTATUS[0]}" -ne "0" ]
+if [ "${makeExitCode}" -ne "0" ]
 then
    echo ""
    echo ${log_output_latest}
    cat ${output_file} | parallel -j ${speed} --k --round --pipe  grep --color=always -f "${filterInclude}" | grep -v "${filterExclude}"
 fi
+
+exit ${makeExitCode}
+
 
 
