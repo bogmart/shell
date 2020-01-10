@@ -223,29 +223,29 @@ else
   snmpset -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} ${hac_ip} hm2FMActionSourceData.0 s ${path_bin_file}        > /dev/null 2>&1
 
   actionActivate=`snmpget -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} -O vq  ${hac_ip} hm2FMActionActivateKey.0`
-  snmpset -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} ${hac_ip} hm2FMActionActivate.copy.firmware.server.system i ${actionActivate}   > /dev/null 2>&1
+  snmpset -t 40 -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} ${hac_ip} hm2FMActionActivate.copy.firmware.server.system i ${actionActivate}   > /dev/null 2>&1
   #echo ${actionActivate}
 
   actionStatus=idle
   while [ "${actionStatus}" == "idle" ]; do
-    actionStatus=`snmpget -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} -O vq ${hac_ip} hm2FMActionStatus.0`
+    actionStatus=`snmpget -t 10 -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} -O vq ${hac_ip} hm2FMActionStatus.0`
     sleep 1
     echo "${actionStatus}"
   done
 
   percentReady=0
   while [ "${actionStatus}" == "running" ]; do
-    actionStatus=`snmpget -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} -O vq ${hac_ip} hm2FMActionStatus.0`
-    percentReady=`snmpget -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} -O vq ${hac_ip} hm2FMActionPercentReady.0`
+    actionStatus=`snmpget -t 5 -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} -O vq ${hac_ip} hm2FMActionStatus.0`
+    percentReady=`snmpget -t 5 -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} -O vq ${hac_ip} hm2FMActionPercentReady.0`
     echo -ne ${percentReady}'\r'
     sleep 1
   done
   echo -e '\n'
 
-  actionResult=`snmpget -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} -O vq ${hac_ip} hm2FMActionResult.0`
+  actionResult=`snmpget -t 5 -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} -O vq ${hac_ip} hm2FMActionResult.0`
   if [ "${actionResult}" == "ok" ] ; then
     echo reboot...
-    actionReset=2 # (1= other, 2 = reset)
+    actionReset=2 # (1 = other, 2 = reset)
     snmpset -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} ${hac_ip} hm2DevMgmtActionReset.0 i ${actionReset}           > /dev/null 2>&1
   else
     actionResultText=`snmpget -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} -O vq ${hac_ip} hm2FMActionResultText.0`   > /dev/null 2>&1
