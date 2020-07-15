@@ -1,6 +1,6 @@
 #/bin/bash
 
-#sudo apt install cifs-utils
+#sudo apt install cifs-utils sshfs
 
 build_main="/media/data/versiuni"
 
@@ -19,8 +19,13 @@ build_branch=${build_local_branch}
 
 
 build_remote_smb="//platform-nas.eu.gad.local/K-Stufen"
-user_belden="eu.gad.local/rnt-setups"
+user_belden="EUGAD/rnt-setups"
 pass_belden="rnt-setups"
+
+#SFTP mount is faster than the samba one
+build_remote_sftp="platform-nas.eu.gad.local"
+user_belden="k-stufen-ro"
+pass_belden=""
 
 
 firmware_out=firmware.bin
@@ -74,12 +79,14 @@ print_usage()
       "
 }
 
+timeStart=`date +%s`
 
 # parse given parameters
 while getopts "d:D:f:o:u:v:w:hr" opt; do
   case $opt in
     d)
-      firmware_dst=$OPTARG
+      # converting to uppercase: usb -> USB
+      firmware_dst=${OPTARG^^}
       ;;
     D)
       firmware_debug=$OPTARG
@@ -146,12 +153,36 @@ if [ ${remote_nas_builds} == 0 ]; then
 #remote builds: official
 else
   if ! mountpoint -q "${build_main}/${build_remote_folder}" ; then
-    sudo mount -r -t cifs -o username=${user_belden},password=${pass_belden}  ${build_remote_smb} ${build_main}/${build_remote_folder}
+    #sudo mount -r -t cifs -o username=${user_belden},password=${pass_belden}  ${build_remote_smb} ${build_main}/${build_remote_folder}
+    sudo sshfs -o allow_other -o reconnect -o ServerAliveInterval=15 ${user_belden}@${build_remote_sftp}:/  ${build_main}/${build_remote_folder}
   fi
 
-  deviceTmp=$(echo ${firmware_input} | cut -f 2 -d '-' | sed 's/[0-9]//g')
-  versionTmp=$(echo ${firmware_input} | cut -f 3 -d '-')
-  buildTmp=$(echo ${firmware_input} | cut -f 4 -d '-')
+  ##parse the device: eg GRS, RSP
+  posIter=2
+  deviceTmp=$(echo ${firmware_input} | cut -f ${posIter} -d '-')
+  posIter=$(( posIter + 1 ))
+  ###skip special case: 2S
+  firstLetter=${deviceTmp:0:1}
+  if  [[ ${firstLetter} =~ [0-9] ]]; then
+    deviceTmp=$(echo ${firmware_input} | cut -f ${posIter} -d '-')
+    posIter=$(( posIter + 1 ))
+  fi
+  ###strip numbers: eg GRS1020_1030, OCTOPUS3 
+  deviceTmp=$(echo ${deviceTmp} | sed 's/[0-9-]//g')
+
+  ##parse version: BETA14, FTRY01
+  versionTmp=$(echo ${firmware_input} | cut -f ${posIter} -d '-')
+  posIter=$(( posIter + 1 ))
+  ###check for FPGA version: PRP, MRP
+  firstLetter=${versionTmp:0:1}
+  if  [[ ! ${firstLetter} =~ [0-9] ]]; then
+    versionTmp=$(echo ${firmware_input} | cut -f ${posIter} -d '-')
+    posIter=$(( posIter + 1 ))
+  fi
+  
+  ##parse build: NTLY12, FINAL.BETA14
+  buildTmp=$(echo ${firmware_input} | cut -f ${posIter} -d '-')
+  posIter=$(( posIter + 1 ))
 
   firmware_in_folder=${deviceTmp}
 
@@ -162,8 +193,18 @@ else
 fi
 
 
+if [ "${debug}" == "1" ]; then
+  echo build_home:         ${build_home}
+  echo build_branch:       ${build_branch}
+  echo build_release:      ${build_release}
+  echo firmware_in_folder: ${firmware_in_folder}
+  echo firmware_input:     ${firmware_input}
+  exit 10
+fi
+
+
 if [ ! -f ${build_home}/${build_branch}/${build_release}/${firmware_in_folder}/${firmware_input}.bin ]; then
-  echo "NO input firmware!"
+  echo "NO input firmware!" ${build_home}/${build_branch}/${build_release}/${firmware_in_folder}/${firmware_input}.bin
   echo
   if [ -d ${build_home}/${build_branch}/${build_release}/${firmware_in_folder} ]; then
     echo "Existing files (-f) are: "
@@ -176,7 +217,7 @@ if [ ! -f ${build_home}/${build_branch}/${build_release}/${firmware_in_folder}/$
     ls -1 ${build_home}/${build_branch}  | grep -vE "web|xml"
   else if [ -d ${build_home} ]; then
     echo "Existing origin/versions are: "
-    ls -1 ${build_home}  | grep "^v"
+    ls -1 ${build_home}  | grep -E "^v|^Hi"
   fi
   fi
   fi
@@ -199,6 +240,7 @@ if [ ${firmware_dst} == USB ]; then
 
   set -x
   cp --preserve=timestamps ${build_home}/${build_branch}/${build_release}/${firmware_in_folder}/${firmware_input}.bin  ${usb_sd_aca_path}/${firmware_out}
+  #rsync -ah --progress ${build_home}/${build_branch}/${build_release}/${firmware_in_folder}/${firmware_input}.bin  ${usb_sd_aca_path}/${firmware_out}
   { set +x; } 2>/dev/null
 
   sync
@@ -244,7 +286,7 @@ else
 
   actionResult=`snmpget -t 5 -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} -O vq ${hac_ip} hm2FMActionResult.0`
   if [ "${actionResult}" == "ok" ] ; then
-    echo reboot...
+    echo -n "reboot...  "
     actionReset=2 # (1 = other, 2 = reset)
     snmpset -v 3 -l authPriv -u ${dut_user} -a MD5 -A ${dut_pass} -x DES -X ${dut_pass} ${hac_ip} hm2DevMgmtActionReset.0 i ${actionReset}           > /dev/null 2>&1
   else
@@ -253,4 +295,8 @@ else
   fi
 
 fi
+
+timeEnd=`date +%s`
+timeRun=$((timeEnd-timeStart))
+echo -e  "done after " ${timeRun} " sec" '\n'
 
