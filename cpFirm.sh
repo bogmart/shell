@@ -10,12 +10,13 @@ build_local_branch="p5_shine"
 build_remote_folder="k-stufen"
 build_remote_origin=${build_remote_folder}/"PlattformV"
 build_remote_branch="v99999"
+build_remote_dev="development"
 
 
 #default
 remote_nas_builds=0
 build_origin=${build_local_origin}
-build_branch=${build_local_branch}
+build_branch=""
 
 
 build_remote_smb="//platform-nas.eu.gad.local/K-Stufen"
@@ -55,7 +56,7 @@ print_usage()
           ex:      00 ; 0 ; 2 ; 6
        -f = firmware source name 
           default: ${firmware_input} 
-          ex:      rsp.bin ; msp403a_MR ; grs10403a_MR ; rsp_FACTORY ; HiOS-GRS1040-07000-FTRY07-FACTORY
+          ex:      rsp.bin ; msp403a_MR ; rsp_FACTORY ; HiOS-GRS1040-07000-FTRY07-FACTORY
        -h = help
        -o = firmware destination file name (only for destination USB)
           default: ${firmware_out} 
@@ -65,9 +66,10 @@ print_usage()
        -u = different destination (only for destination USB)
           default: storage auto detected by pattern: ${usb_sd_aca}
           ex:      /home/bmartinescu/lexar
-       -v = different source branch (only for local storage)
-          default: ${build_branch} 
-          ex:      p5_shine ; p5_shine_work
+       -v = different source branch
+          default: ${build_local_branch} (local)   none (remote)
+          ex:      local:   p5_shine ; p5_shine_work
+                   remote:  iceberg ; orion
        -w = different source path (only for local storage)
           default: ${build_origin} 
           ex:      bogmart_builds ; official_builds
@@ -136,6 +138,8 @@ if [ ${remote_nas_builds} == 0 ]; then
     firmware_in_folder=""
 
   else   #local built images
+    build_branch=${build_local_branch}
+
     #parse image name, e.g: rsp-PRP_FACTORY;  msp3a_MR
     firmware_in_folder=$(echo ${firmware_input} | cut -f 1 -d '-')
     firmware_in_folder=${firmware_in_folder%"_FACTORY"}   #remove "_FACTORY"
@@ -187,7 +191,14 @@ else
   firmware_in_folder=${deviceTmp}
 
   build_origin=${build_remote_origin}
-  build_branch="v"${versionTmp}
+
+  #/development/bell/...
+  if [ "${build_branch}" != "" ]; then
+    build_branch=${build_remote_dev}/${build_branch}
+  else
+    build_branch="v"${versionTmp}
+  fi
+
   build_release=${buildTmp}
   build_home=${build_main}/${build_remote_origin}
 fi
@@ -217,7 +228,11 @@ if [ ! -f ${build_home}/${build_branch}/${build_release}/${firmware_in_folder}/$
     ls -1 ${build_home}/${build_branch}  | grep -vE "web|xml"
   else if [ -d ${build_home} ]; then
     echo "Existing origin/versions are: "
-    ls -1 ${build_home}  | grep -E "^v|^Hi"
+    if [ -d ${build_home}/${build_remote_dev} ]; then
+      ls -1 ${build_home}/${build_remote_dev}
+    else
+      ls -1 ${build_home}  | grep -E "^v|^Hi"
+    fi
   fi
   fi
   fi
