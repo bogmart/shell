@@ -13,8 +13,7 @@ case "$1" in
   brs)
     baudRate=115200
     ttyDevice=/dev/ttyACM0
-    #ttyDevice=/dev/serial/by-id/usb-Hirschmann_Automation+Control_BRS20-0400_B2_77-if02
-    #ttyDevice=/dev/serial/by-id/usb-Hirschmann_Automation+Control_BRS50-00122Q2Q-STCZ99HHSES_942170999000201851-if02
+    #ttyDevice=/dev/serial/by-id/usb-Hirschmann_Automation_and_Control_GmbH_*
   ;;
 
   rsp|rsps|rspl|rspe)
@@ -22,20 +21,26 @@ case "$1" in
     ttyDevice=/dev/ttyS3
   ;;
 
-  ees|msp|os|grs)
+  ees|msp|os|grs|dragon)
     baudRate=9600
     ttyDevice=/dev/ttyS1
   ;;
 
-  usb|dragon)
+  usb)
+    baudRate=115200
+    ttyDevice=/dev/ttyUSB0
+    #ttyDevice=/dev/serial/by-id/usb-FTDI_*
+  ;;
+
+  usb1)
     baudRate=9600
     #ttyDevice=/dev/ttyUSB0
     #ttyDevice=/dev/ttyUSB1
-    ttyDevice=/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_D-if00-port0
+    ttyDevice=/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_*
   ;;
 
   *)
-    echo "Usage: $(basename -- "$0") {brs|dragon|grs|msp|os|rsp|rspl|rspe|rsps} [options]" >&2
+    echo "Usage: $(basename -- "$0") {brs|dragon|grs|msp|os|rsp|rspl|rspe|rsps|usb} [options]" >&2
     echo "Ex   : $(basename -- "$0") dragon                           -b 115200" >&2
     exit 2
   ;;
