@@ -16,6 +16,11 @@ case "$1" in
     termSrvPort=5006
   ;;
 
+  m4002xg)
+    termSrvIp=10.2.36.241
+    termSrvPort=5008
+  ;;
+
   msp20)
     termSrvIp=10.2.36.238
     termSrvPort=5014
