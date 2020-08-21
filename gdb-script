@@ -1,3 +1,10 @@
+# dashboard: 
+#   -->  ~/.gdbinit
+#   -->  ~/.gdbinit.d/
+#   -->  ~/.inputrc
+#github.com/cyrus-and/gdb-dashboard
+
+
 python
 if True == True:
   import os
@@ -7,7 +14,7 @@ if True == True:
   gdb.execute('set logging on')
 
   # enable command tracing (log input to file)
-  gdb.execute('set trace-commands on')
+  #gdb.execute('set trace-commands on')
 
   # allow background execution
   gdb.execute('set target-async on')
@@ -17,11 +24,12 @@ if True == True:
 
   # allow some threads to run while others are stopped
   gdb.execute('set non-stop on')
+
+  # do not follow processes forked from the attached process - if it is enabled it can crash GDB sometimes
   gdb.execute('set detach-on-fork off')
 
 
   # set paths
-  #set environment DBG_IMG_SUBDIR=brs2s
 
   # this script MUST be executed/loaded from "parent" directory of all git checkouts
   gdb.execute('cd '                        + os.environ['DBG_GIT_BASE_DIR'] )
@@ -32,6 +40,8 @@ if True == True:
 
   gdb.execute('set solib-search-path '     + os.environ['DBG_GIT_SHINE_DIR_NAME']    + '/target/' + os.environ['DBG_IMG_SUBDIR'] + '/rootfs.unstripped/')
   gdb.execute('set solib-search-path '     + os.environ['ARM_TOOLCHAIN_INSTALL_DIR'] + '/arm-linux-gnueabihf/lib')
+  gdb.execute('set solib-search-path '     + os.environ['ARM_TOOLCHAIN_INSTALL_DIR'] + '/arm-linux-gnueabihf/lib/debug')
+  gdb.execute('set solib-search-path '     + os.environ['ARM_TOOLCHAIN_INSTALL_DIR'] + '/arm-linux-gnueabihf/libc/lib')
   gdb.execute('set solib-search-path '     + os.environ['ARM_TOOLCHAIN_INSTALL_DIR'] + '/arm-linux-gnueabihf/libc/usr/lib')
 
   gdb.execute('set debug-file-directory '  + os.environ['ARM_TOOLCHAIN_INSTALL_DIR'] + '/arm-linux-gnueabihf/libc/lib/debug')
@@ -50,7 +60,6 @@ if True == True:
 end  
 
 
-
 define brs_switchdrv
   python
 if True == True:
@@ -61,7 +70,7 @@ if True == True:
     gdb.execute('file ' +  os.environ['DBG_GIT_SHINE_DIR_NAME'] + '/target/am335_l/avenger/' + os.environ['DBG_LEVEL_SUBDIR'] + '/ipl/switchdrvr')
 
     if 'DBG_REMOTE' in os.environ:
-      gdb.execute('target remote 192.168.2.100:333')
+      gdb.execute('target remote 192.168.248.100:333')
     else:
       gdb.execute('target extended-remote 192.168.248.100:12345')
 
@@ -73,7 +82,7 @@ if True == True:
           pid = int(tmp[0])
           if pid < 1000:
             gdb.write("Attaching to " + tmp[0] + "\n")
-            gdb.execute('attach ' + tmp[0], True)
+            gdb.execute('attach ' + tmp[0])
     # end "remote debug: DBG_REMOTE"
 
   # end python
