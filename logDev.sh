@@ -21,6 +21,14 @@ fi
 #get the device type/family: MSP30 / BRS50
 hac_type=`snmpget -v 3 -l authPriv -u admin -a MD5 -A privateprivate -x DES -X privateprivate ${hac_ip} hm2DevMgmtProductDescr.0 | grep -oh  "STRING: [a-zA-Z0-9]*" | sed 's/STRING: //'`
 
+
+protocol=http
+hac_https=`snmpget -v 3 -l authPriv -u admin -a MD5 -A privateprivate -x DES -X privateprivate ${hac_ip} -O vq hm2WebHttpsAdminStatus.0`
+if [ "${hac_https}" == "enable" ]
+then
+  protocol=https
+fi
+
 tmpFile=temp_${hac_ip}.html
 outFile=develLog_${hac_type}_${hac_ip}-$(date +"%Y.%m.%d-%H.%M.%S").html
 outDir=/media/data/logs/dev_logs
@@ -30,7 +38,8 @@ outDir=/media/data/logs/dev_logs
 #wget  --header="Authorization: Basic ${base64auth}"  http://${hac_ip}/download.html?filetype=supportinfo -O ${outDir}/${tmpFile} 
 
 
-wget  --http-user=${user} --http-password=${pass}  http://${hac_ip}/download.html?filetype=supportinfo -O ${outDir}/${tmpFile} 
+wget --http-user=${user} --http-password=${pass} --no-check-certificate  ${protocol}://${hac_ip}/download.html?filetype=supportinfo -O ${outDir}/${tmpFile}
+
 
 # check if file exist and it is not empty
 if [[ -f ${outDir}/${tmpFile} && -s ${outDir}/${tmpFile} ]]
