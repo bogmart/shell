@@ -9,7 +9,7 @@ export DBG_GIT_SHINE_DIR_NAME=p5_smart_shine
 export DBG_GIT_SHARED_DIR_NAME=p5_hirschmann_shared
 export DBG_GIT_LINUX_DIR_NAME=p5_linux_kernel
 
-export DBG_IMG_SUBDIR=brs2s
+export DBG_IMG_SUBDIR=brs2a
 export DBG_LEVEL_SUBDIR=DEBUG_6
 
 gdb_script=~/scripts/gdb-script
