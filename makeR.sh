@@ -22,10 +22,11 @@ hw=ees
 target=
 targetDefault=BIN
 debug=2
-speed=8
+speed=6
 webBuild=1
 logConsole=2
 versionName=B.Mar
+releaseName=
 optionsUnknown=
 
 log_output_dir=/media/data/versiuni/bogmart_builds/build_logs
@@ -46,6 +47,8 @@ echo ".*multiple definition of.*"    >> ${filterInclude}
 echo ".*first defined here.*"        >> ${filterInclude}
 echo ".*First name: .*"              >> ${filterInclude}
 echo ".*No rule to make target.*"    >> ${filterInclude}
+#make
+echo ".*not supported.*"             >> ${filterInclude}
 #shell
 echo ".*not found.*"                 >> ${filterInclude}
 #echo ".*last token read.*"           >> ${filterInclude}
@@ -67,6 +70,7 @@ print_usage()
       echo "                            8: no -Werror"
       echo "                            16: cUnit framework included"
       echo ""
+      echo "      RELEASE_CNAME    e.g. bell, orion, etc"
       echo "      SHINE_SHARED_DIR e.g. SHINE_SHARED_DIR=/media/SSD/bogmart_workbench/p5_hirschmann_shared_master"
 }
 
@@ -92,6 +96,10 @@ do
       ;;
     VERSION=*)
       versionName="${i#*=}"
+      shift # past argument=value
+      ;;
+    RELEASE_CNAME=*)
+      releaseName="${i#*=}"
       shift # past argument=value
       ;;
     WEB_BUILD=*)
@@ -128,10 +136,10 @@ ln -s  ${output_file}   ${log_output_latest}
 
 
 echo -e make TARGET=${hw} ${target} DEBUG=${debug} LOG_CONSOLE=${logConsole} SPEED=${speed} VERSION=${versionName} \
-               WEB_BUILD=${webBuild} ${optionsUnknown} > ${output_file} \\n
+               WEB_BUILD=${webBuild} RELEASE_CNAME=${releaseName} ${optionsUnknown} > ${output_file} \\n
 
 (eval ${timeStats} nice  make TARGET=${hw} ${target} DEBUG=${debug} LOG_CONSOLE=${logConsole} SPEED=${speed} VERSION=${versionName} \
-               WEB_BUILD=${webBuild} ${optionsUnknown} 2>&1) 2>&1 | tee -a ${output_file}
+               WEB_BUILD=${webBuild} RELEASE_CNAME=${releaseName} ${optionsUnknown} 2>&1) 2>&1 | tee -a ${output_file}
 
 makeExitCode=${PIPESTATUS[0]}
 
