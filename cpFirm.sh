@@ -9,7 +9,8 @@ build_local_branch="p5_shine"
 
 build_remote_folder="k-stufen"
 build_remote_origin=${build_remote_folder}/"PlattformV"
-build_remote_branch="v99999"
+build_remote_prefix="v"
+build_remote_branch=${build_remote_prefix}"99999"
 build_remote_dev="development"
 
 
@@ -30,14 +31,14 @@ pass_belden=""
 
 
 firmware_out=firmware.bin
-firmware_input=os32a
+firmware_input=os22a
 firmware_dst=USB
 
-# FTP server: user & pass
+# FTP server (local on PC)
 user_name=user
 user_pass=pass
 
-# DUT SNMPv3: user & pass
+# DUT SNMPv3
 dut_user=admin
 dut_pass=privateprivate
 
@@ -75,9 +76,10 @@ print_usage()
           ex:      bogmart_builds ; official_builds
 
       Examples:
-        $(basename $0) -f msp403a_MR                         -d 10.20.20.20
-        $(basename $0) -f HiOS-RSPS-06100.bin                -d USB         -w official_builds     
-        $(basename $0) -f HiOS-GRS1040-07500-FTRY04-FACTORY  -d USB         -r
+        $(basename $0)    -f msp403a_MR                         -d 10.20.20.20
+        $(basename $0)    -f HiOS-RSPS-06100.bin                -d USB         -w official_builds     
+        $(basename $0) -r -f HiOS-GRS1040-07500-FTRY04-FACTORY  -d USB         
+        $(basename $0) -r -f HiOS-GRS1040-99999-BETA01          -d USB         -v orion
       "
 }
 
@@ -172,7 +174,7 @@ else
     posIter=$(( posIter + 1 ))
   fi
   ###strip numbers: eg GRS1020_1030, OCTOPUS3 
-  deviceTmp=$(echo ${deviceTmp} | sed 's/[0-9-]//g')
+  deviceTmp=$(echo ${deviceTmp} | sed 's/[0-9_]//g')
 
   ##parse version: BETA14, FTRY01
   versionTmp=$(echo ${firmware_input} | cut -f ${posIter} -d '-')
@@ -196,7 +198,7 @@ else
   if [ "${build_branch}" != "" ]; then
     build_branch=${build_remote_dev}/${build_branch}
   else
-    build_branch="v"${versionTmp}
+    build_branch=${build_remote_prefix}${versionTmp}
   fi
 
   build_release=${buildTmp}
@@ -228,7 +230,7 @@ if [ ! -f ${build_home}/${build_branch}/${build_release}/${firmware_in_folder}/$
     ls -1 ${build_home}/${build_branch}  | grep -vE "web|xml"
   else if [ -d ${build_home} ]; then
     echo "Existing origin/versions are: "
-    if [ -d ${build_home}/${build_remote_dev} ]; then
+    if [[ ${build_branch} =~ ${build_remote_dev}.* ]] && [ -d ${build_home}/${build_remote_dev} ]; then
       ls -1 ${build_home}/${build_remote_dev}
     else
       ls -1 ${build_home}  | grep -E "^v|^Hi"
