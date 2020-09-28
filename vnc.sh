@@ -1,6 +1,16 @@
 #/bin/sh
 
-sudo killall x11vnc
+#close all existing "x11vnc" (close TCP ports, too)
+if pgrep "x11vnc" >/dev/null 2>&1
+  then
+    sudo killall x11vnc
+  fi
+#force kill unresponsive "x11vnc"
+if pgrep "x11vnc" >/dev/null 2>&1
+  then
+    sudo killall -w -9 x11vnc
+  fi
+
 
 x11vnc -repeat -nowf -ncache_cr -skip_lockkeys -clear_all -nevershared -dontdisconnect --display :0
 
